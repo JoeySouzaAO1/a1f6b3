@@ -2,25 +2,26 @@ import type { Form } from '../types/form';
 
 interface FormListProps {
   forms: Form[];
-  onFormSelect: (form: Form) => void;
+  selectedFormId: string | null;
+  onSelectForm: (formId: string) => void;
 }
 
-export const FormList = ({ forms, onFormSelect }: FormListProps) => {
+export const FormList = ({ forms, selectedFormId, onSelectForm }: FormListProps) => {
   return (
     <div className="form-list">
       <h2>Forms</h2>
-      <div className="forms">
+      <ul>
         {forms.map(form => (
-          <div
-            key={form.id}
-            className="form-item"
-            onClick={() => onFormSelect(form)}
-          >
-            <h3>{form.name}</h3>
-            <p>{form.fields.length} fields</p>
-          </div>
+          <li key={form.id}>
+            <button
+              onClick={() => onSelectForm(form.id)}
+              className={selectedFormId === form.id ? 'selected' : ''}
+            >
+              {form.name}
+            </button>
+          </li>
         ))}
-      </div>
+      </ul>
     </div>
   );
 }; 

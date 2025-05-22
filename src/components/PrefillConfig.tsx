@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Form, PrefillMapping } from '../types/form';
+import { PrefillMappingModal } from './PrefillMappingModal';
 
 interface PrefillConfigProps {
   form: Form;
@@ -18,95 +19,61 @@ export const PrefillConfig = ({
   mappings,
   availableDataSources,
   onAddMapping,
-  onRemoveMapping
+  onRemoveMapping,
 }: PrefillConfigProps) => {
   const [selectedField, setSelectedField] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
 
-  const handleFieldClick = (fieldId: string) => {
-    setSelectedField(fieldId);
-    setShowModal(true);
-  };
-
-  const handleSourceSelect = (source: any) => {
-    if (selectedField) {
-      onAddMapping({
-        sourceFormId: source.formId || '',
-        sourceFieldId: source.fieldId || '',
-        targetFieldId: selectedField
-      });
-      setShowModal(false);
-      setSelectedField(null);
-    }
+  const getMappingForField = (fieldId: string) => {
+    return mappings.find(m => m.targetFieldId === fieldId);
   };
 
   return (
     <div className="prefill-config">
       <h2>Prefill Configuration for {form.name}</h2>
-      <div className="fields">
+      <div className="fields-list">
         {form.fields.map(field => {
-          const mapping = mappings.find(m => m.targetFieldId === field.id);
+          const mapping = getMappingForField(field.id);
           return (
-            <div key={field.id} className="field-item">
-              <span>{field.name}</span>
-              {mapping ? (
-                <div className="mapping">
-                  <span>Prefilled from: {mapping.sourceFormId}</span>
-                  <button onClick={() => onRemoveMapping(field.id)}>X</button>
-                </div>
-              ) : (
-                <button onClick={() => handleFieldClick(field.id)}>
-                  Add Prefill
-                </button>
-              )}
+            <div key={field.id} className="field-row">
+              <div className="field-info">
+                <span className="field-name">{field.name}</span>
+                <span className="field-type">({field.type})</span>
+              </div>
+              <div className="field-mapping">
+                {mapping ? (
+                  <div className="mapping-info">
+                    <span>
+                      Mapped to: {mapping.sourceFormId} - {mapping.sourceFieldId}
+                    </span>
+                    <button
+                      onClick={() => onRemoveMapping(field.id)}
+                      className="remove-mapping"
+                      title="Remove mapping"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setSelectedField(field.id)}
+                    className="add-mapping"
+                  >
+                    Add Mapping
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
       </div>
 
-      {showModal && (
-        <div className="modal">
-          <div className="modal-content">
-            <h3>Select Data Source</h3>
-            <div className="data-sources">
-              <div className="source-group">
-                <h4>Direct Dependencies</h4>
-                {availableDataSources.direct.map(source => (
-                  <button
-                    key={`${source.formId}-${source.fieldId}`}
-                    onClick={() => handleSourceSelect(source)}
-                  >
-                    {source.formId} - {source.fieldId}
-                  </button>
-                ))}
-              </div>
-              <div className="source-group">
-                <h4>Transitive Dependencies</h4>
-                {availableDataSources.transitive.map(source => (
-                  <button
-                    key={`${source.formId}-${source.fieldId}`}
-                    onClick={() => handleSourceSelect(source)}
-                  >
-                    {source.formId} - {source.fieldId}
-                  </button>
-                ))}
-              </div>
-              <div className="source-group">
-                <h4>Global Data</h4>
-                {availableDataSources.global.map(source => (
-                  <button
-                    key={source.globalDataId}
-                    onClick={() => handleSourceSelect(source)}
-                  >
-                    {source.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button onClick={() => setShowModal(false)}>Cancel</button>
-          </div>
-        </div>
-      )}
+      <PrefillMappingModal
+        isOpen={!!selectedField}
+        onClose={() => setSelectedField(null)}
+        onSave={onAddMapping}
+        targetFieldId={selectedField || ''}
+        availableDataSources={availableDataSources}
+      />
     </div>
   );
 }; 

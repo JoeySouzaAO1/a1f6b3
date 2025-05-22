@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Form, FormPrefillConfig, PrefillMapping } from '../types/form';
-import { fetchFormGraph, findTransitiveDependencies } from '../services/api';
+import { fetchFormGraph } from '../services/api';
+import { findTransitiveDependencies } from '../utils/graphUtils';
 
 export const useFormPrefill = () => {
   const [forms, setForms] = useState<Form[]>([]);
